@@ -7,7 +7,7 @@ import time ####
 wCam , hCam = 640,480
 wScr , hScr =autopy.screen.size()
 frameR = 150
-smootheing = 7 # changed from 5 to 7
+smootheing = 5
 plocX , plocY = 0, 0
 clocX , clocY = 0,0
 ##########################
