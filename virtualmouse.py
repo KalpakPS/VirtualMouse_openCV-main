@@ -54,10 +54,10 @@ def Mouse(img):
             plocY, plocX = clocY, clocX
 
         # 8. both are up : cliking mode
-        if fingers[1] == 1 and fingers[0] == 1:
+        if fingers[1] == 1 and fingers[2] == 1:
             # 9. finding distance
-            length, bbox = detector.findDistance(8, 4, img)#######
-            #print(length)
+            length, bbox = detector.findDistance(8, 12, img)#######
+            print(length)
             # 10. click if distance was short
             if length < 25:
                 autopy.mouse.click()
