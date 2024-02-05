@@ -62,6 +62,15 @@ def Mouse(img):
             if length < 25:
                 autopy.mouse.click()
                 time.sleep(0.2)###
+            # 11. three fingers are up : right clicking mode
+        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1:
+            # 12. finding distance
+            length, bbox = detector.findDistance(8, 12, img)
+            print(length)
+            # 13. right click if distance was short
+            if length < 25:
+                autopy.mouse.click(button=autopy.mouse.Button.RIGHT)
+                time.sleep(0.2)
     return img
 
 
