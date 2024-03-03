@@ -3,6 +3,13 @@ import cv2 as cv
 import numpy as np
 import autopy
 import time ####
+
+from tkinter import *
+root=Tk()
+root.geometry('300x300')
+
+l=Label(root,text="Virtual mouse")
+l.pack()
 ###########################
 wCam , hCam = 640,480
 wScr , hScr =autopy.screen.size()
@@ -87,5 +94,7 @@ def main():
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
-if __name__=='__main__':
-    main()
+b=Button(root, text="Click me",command=main)
+b.pack(side=TOP)
+
+root.mainloop()
