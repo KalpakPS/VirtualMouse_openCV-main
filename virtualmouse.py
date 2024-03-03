@@ -3,8 +3,10 @@ import cv2 as cv
 import numpy as np
 import autopy
 import time ####
-
+import sys
 from tkinter import *
+import threading  # Add threading module
+
 root=Tk()
 root.geometry('300x300')
 
@@ -23,21 +25,14 @@ cap.set(3,wCam)
 cap.set(4,hCam)
 detector = htm.HandDetector()
 
+running = True  # Added running flag to control the main loop
+
 def Mouse(img):
-    global frameR
-    global smootheing
-    global plocX
-    global plocY
-    global clocX
-    global clocY
-    global wScr
-    global wCam
-    global hScr
-    global hCam
+    global frameR, smootheing, plocX, plocY, clocX, clocY, wScr, wCam, hScr, hCam
     # finding hands
     detector.findhands(img)
-    lmlist, bbox = detector.findPosition(img)
 
+    lmlist, bbox = detector.findPosition(img)
     cv.rectangle(img, (frameR, frameR), (wCam - frameR, hCam - frameR), (255, 0, 255), 2)
 
     # 2. get the tip of index and midel finger
@@ -82,19 +77,28 @@ def Mouse(img):
 
 
 def main():
-    while True:
-        sucess, img = cap.read()
+    global running
+    while running:  # Modified to use the running flag
+        success, img = cap.read()
         img = cv.flip(img, 1)
-
         img = Mouse(img)
 
-        # 11. display
-
+        #display
         cv.imshow("result", img)
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
+def start_main_loop():  # Function to run main() in a separate thread
+    threading.Thread(target=main).start()
 
-b=Button(root, text="Click me",command=main)
-b.pack(side=TOP)
+def stop_program():
+    global running
+    running = False
+    sys.exit()
+
+b=Button(root, text="Start", command=start_main_loop)
+b.pack()
+
+b2 = Button(root, text="Stop", command=stop_program)
+b2.pack()
 
 root.mainloop()
