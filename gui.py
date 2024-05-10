@@ -6,6 +6,7 @@ import time
 import sys
 from tkinter import *
 import threading
+import pyautogui
 import HandTrackingModule as htm  # Import HandTrackingModule
 
 
@@ -157,7 +158,11 @@ def Mouse(img):
             # 13. right click if distance was short
             if length < 25:
                 autopy.mouse.click(button=autopy.mouse.Button.RIGHT)
-                time.sleep(0.2)
+                time.sleep(0.5)
+        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1 and fingers[4] == 1:
+            if length < 25:
+                pyautogui.click(button='middle')
+                time.sleep(0.7)
     return img
 
 
