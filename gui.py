@@ -160,6 +160,8 @@ def Mouse(img):
                 autopy.mouse.click(button=autopy.mouse.Button.RIGHT)
                 time.sleep(0.5)
         if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1 and fingers[4] == 1:
+            # Middle mouse button click
+            length, bbox = detector.findDistance(8, 12, img)
             if length < 25:
                 pyautogui.click(button='middle')
                 time.sleep(0.7)
