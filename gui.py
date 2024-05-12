@@ -9,13 +9,14 @@ import threading
 import pyautogui
 import HandTrackingModule as htm  # Import HandTrackingModule
 
-
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame0")  # gui assets path
 
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
+
+####################################
 
 
 window = Tk()
@@ -94,7 +95,14 @@ button_2.place(
 
 window.resizable(False, False)
 
-###########################
+
+def check_s_pressed(event):
+    if event.char == 's':
+        start_main_loop()
+
+
+window.bind("<KeyPress>", check_s_pressed)  # start if 's' is pressed in the keyboard
+####################################
 
 
 wCam, hCam = 640, 480
@@ -198,7 +206,7 @@ def stop_program():
     # Release the webcam resource
     cap.release()
     thread.join()  # Wait for the thread to finish
-    #sys.exit()
+    sys.exit()  # close all window
 
 
 window.mainloop()
