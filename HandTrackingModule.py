@@ -1,6 +1,4 @@
-import time
 import cv2 as cv
-import numpy as np
 import mediapipe as mp
 import math
 
@@ -21,9 +19,8 @@ class HandDetector :
         self.tipIds = [4, 8, 12, 16, 20]
         #############################
 
-
     def findhands(self, img, draw = True):
-        imgRGB = cv.cvtColor(img,cv.COLOR_BGR2RGB)
+        imgRGB = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         self.processHand = self.Hands.process(imgRGB)
         # print(processHand.multi_hand_landmarks)
         if self.processHand.multi_hand_landmarks:  # you can use processHand.multi_hand_landmarks[0] or [1] this hand.no
@@ -75,7 +72,7 @@ class HandDetector :
 
         return fingers
 
-    def findDistance(self, p1, p2, img, draw=True, r=15, t=3):
+    def findDistance(self, p1, p2, img, draw=True, r=10, t=3):
         x1, y1 = self.lmlist[p1][1:]
         x2, y2 = self.lmlist[p2][1:]
         cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
@@ -103,6 +100,9 @@ def main():
             length,bbox = detector.findDistance(8,12,img)
             print(length)
             print(fingers)
+            """detector.findDistance(12, 16, img)
+            detector.findDistance(16, 20, img)
+            detector.findDistance(4, 8, img)"""
 
         cv.imshow("result", img)
 
