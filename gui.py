@@ -11,7 +11,7 @@ import HandTrackingModule as htm  # Import HandTrackingModule
 
 
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"C:\My Files\Programming\Mini project\build\assets\frame0")
+ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame0")  # gui assets path
 
 
 def relative_to_assets(path: str) -> Path:
@@ -19,10 +19,9 @@ def relative_to_assets(path: str) -> Path:
 
 
 window = Tk()
-
+window.title("Virtual Mouse")
 window.geometry("700x500")
 window.configure(bg="#252525")
-
 canvas = Canvas(
     window,
     bg="#252525",
@@ -43,7 +42,7 @@ image_1 = canvas.create_image(
 )
 
 canvas.create_text(
-    151.0,
+    180.0,
     61.0,
     anchor="nw",
     text="VIRTUAL MOUSE",
@@ -105,7 +104,7 @@ smootheing = 5
 plocX, plocY = 0, 0
 clocX, clocY = 0, 0
 
-cap = cv.VideoCapture(0)
+cap = cv.VideoCapture(0)  # webcam video capturing
 cap.set(3, wCam)
 cap.set(4, hCam)
 detector = htm.HandDetector()
@@ -124,8 +123,8 @@ def Mouse(img):
     # 2. get the tip of index and midel finger
     if len(lmlist) != 0:
         Xindex, Yindex = lmlist[8][1], lmlist[8][2]
-        Xmidel, Ymidel = lmlist[12][1], lmlist[12][2]
-        Xthumb, Ythumb = lmlist[4][1], lmlist[4][2]
+        #Xmidel, Ymidel = lmlist[12][1], lmlist[12][2]
+        #Xthumb, Ythumb = lmlist[4][1], lmlist[4][2]
         # 3. check which one is up?
         fingers = detector.fingersUp()
         # 4. index: moving mode
@@ -138,11 +137,11 @@ def Mouse(img):
             clocY = plocY + (yMOUSE - plocY) / smootheing
             # 7. move mouse
             autopy.mouse.move(clocX, clocY)
-            cv.circle(img, (Xindex, Yindex), 15, (20, 180, 90), cv.FILLED)
+            cv.circle(img, (Xindex, Yindex), 10, (20, 180, 90), cv.FILLED)
             plocY, plocX = clocY, clocX
 
         # 8. both are up : cliking mode
-        if fingers[1] == 1 and fingers[2] == 1:
+        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] != 1 and fingers[4] != 1:
             # 9. finding distance
             length, bbox = detector.findDistance(8, 12, img)
             print(length)
@@ -150,11 +149,12 @@ def Mouse(img):
             if length < 25:
                 autopy.mouse.click()
                 time.sleep(0.2)
-                # 11. three fingers are up : right clicking mode
-        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1:
+        # 11. three fingers are up : right clicking mode
+        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1 and fingers[4] != 1:
             # 12. finding distance
             length, bbox = detector.findDistance(8, 12, img)
             print(length)
+            detector.findDistance(12, 16, img)
             # 13. right click if distance was short
             if length < 25:
                 autopy.mouse.click(button=autopy.mouse.Button.RIGHT)
@@ -162,6 +162,8 @@ def Mouse(img):
         if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1 and fingers[4] == 1:
             # Middle mouse button click
             length, bbox = detector.findDistance(8, 12, img)
+            detector.findDistance(12, 16, img)
+            detector.findDistance(16, 20, img)
             if length < 25:
                 pyautogui.click(button='middle')
                 time.sleep(0.7)
@@ -176,19 +178,27 @@ def main():
         img = Mouse(img)
 
         # display
-        cv.imshow("result", img)
-        if cv.waitKey(1) & 0xFF == ord('q'):
-            break
+        cv.imshow("Webcam", img)
+        cv.waitKey(1)
+
+
+global thread
 
 
 def start_main_loop():  # Function to run main() in a separate thread
-    threading.Thread(target=main).start()
+    global running, thread
+    running = True  # Reset the flag before starting a new thread
+    thread = threading.Thread(target=main)
+    thread.start()
 
 
 def stop_program():
     global running
     running = False
-    sys.exit()
+    # Release the webcam resource
+    cap.release()
+    thread.join()  # Wait for the thread to finish
+    #sys.exit()
 
 
 window.mainloop()
