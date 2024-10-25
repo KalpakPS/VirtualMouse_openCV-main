@@ -1,3 +1,5 @@
+import mediapipe as mp
+import math
 from pathlib import Path
 import cv2 as cv
 import numpy as np
@@ -7,11 +9,10 @@ import sys
 from tkinter import *
 import threading
 import pyautogui
-import HandTrackingModule as htm  # Import HandTrackingModule
 
 
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"C:\My Files\Programming\Mini project\build\assets\frame0")
+ASSETS_PATH = OUTPUT_PATH / Path(r"assets")  # gui assets path
 
 
 def relative_to_assets(path: str) -> Path:
@@ -95,6 +96,91 @@ button_2.place(
 
 window.resizable(False, False)
 
+
+class HandDetector :
+    def __init__(self ,mode=False , maxHand=2 , detectCon=0.5 ,trackCon=0.5):
+        self.mode = mode
+        self.maxHand = maxHand
+        self.detectCon = detectCon
+        self.trackCon = trackCon
+
+        #############################
+        self.mpHand = mp.solutions.hands
+        self.Hands = self.mpHand.Hands(self.mode,self.maxHand,1,self.detectCon,self.trackCon)  # it has detection mode and Tracking mode when we dont have any thing to trackn in goes to detection mode
+                                                                                             # Hands = mpHand.Hands(False,2,min_tracking_confidence=0.5) it can be like that but these are already set as defult so we can leave them
+                                                                                             # please note thet this library (hand) just take RGB img
+        self.mpDraw = mp.solutions.drawing_utils
+        self.tipIds = [4, 8, 12, 16, 20]
+        #############################
+
+
+    def findhands(self, img, draw = True):
+        imgRGB = cv.cvtColor(img,cv.COLOR_BGR2RGB)
+        self.processHand = self.Hands.process(imgRGB)
+        # print(processHand.multi_hand_landmarks)
+        if self.processHand.multi_hand_landmarks:  # you can use processHand.multi_hand_landmarks[0] or [1] this hand.no
+            for handLMS in self.processHand.multi_hand_landmarks:
+                if draw :
+                    self.mpDraw.draw_landmarks(img, handLMS, self.mpHand.HAND_CONNECTIONS)
+
+    def findPosition(self ,img ,handsNo=0 ):
+        self.lmlist=[]
+        xList=[]
+        ylist=[]
+        bbox=[]
+        if self.processHand.multi_hand_landmarks:  # you can use processHand.multi_hand_landmarks[0] or [1] this hand.no
+            try:
+                myHand = self.processHand.multi_hand_landmarks[handsNo]
+                for id, lm in enumerate(myHand.landmark):
+                    # print(id, lm)  # the hands has 21 points [0 to 20] each point indicate some part of hand
+                    # the problem is that the lm is in decimal and we need pixel ex:(200 w,300 h)
+                    h, w, c = img.shape
+                    cx, cy = int(lm.x * w), int(lm.y * h)  # now we have the (id,cx,cy) so we can do anything
+                    self.lmlist.append([id,cx,cy])
+                    xList.append(cx)
+                    ylist.append(cy)
+                xmin,xmax = min(xList),max(xList)
+                ymin,ymax = min(ylist),max(ylist)
+                bbox=xmin,ymin,xmax,ymax
+            except:
+                pass
+
+        return self.lmlist,bbox
+
+    def fingersUp(self):
+        fingers = []
+        # Thumb
+        if self.lmlist[self.tipIds[0]][1] > self.lmlist[self.tipIds[0] - 1][1]:
+            fingers.append(1)
+        else:
+            fingers.append(0)
+
+        # Fingers
+        for id in range(1, 5):
+
+            if self.lmlist[self.tipIds[id]][2] < self.lmlist[self.tipIds[id] - 2][2]:
+                fingers.append(1)
+            else:
+                fingers.append(0)
+
+        # totalFingers = fingers.count(1)
+
+        return fingers
+
+    def findDistance(self, p1, p2, img, draw=True, r=10, t=3):
+        x1, y1 = self.lmlist[p1][1:]
+        x2, y2 = self.lmlist[p2][1:]
+        cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
+
+        if draw:
+            cv.line(img, (x1, y1), (x2, y2), (255, 0, 255), t)
+            cv.circle(img, (x1, y1), r, (255, 0, 255), cv.FILLED)
+            cv.circle(img, (x2, y2), r, (255, 0, 255), cv.FILLED)
+            cv.circle(img, (cx, cy), r, (0, 0, 255), cv.FILLED)
+        length = math.hypot(x2 - x1, y2 - y1)
+
+        return length,[x1, y1, x2, y2, cx, cy]
+    
 ###########################
 
 
@@ -108,7 +194,7 @@ clocX, clocY = 0, 0
 cap = cv.VideoCapture(0)
 cap.set(3, wCam)
 cap.set(4, hCam)
-detector = htm.HandDetector()
+detector = HandDetector()
 
 running = True  # Added running flag to control the main loop
 
@@ -138,7 +224,7 @@ def Mouse(img):
             clocY = plocY + (yMOUSE - plocY) / smootheing
             # 7. move mouse
             autopy.mouse.move(clocX, clocY)
-            cv.circle(img, (Xindex, Yindex), 15, (20, 180, 90), cv.FILLED)
+            cv.circle(img, (Xindex, Yindex), 10, (20, 180, 90), cv.FILLED)
             plocY, plocX = clocY, clocX
 
         # 8. both are up : cliking mode
@@ -155,6 +241,7 @@ def Mouse(img):
             # 12. finding distance
             length, bbox = detector.findDistance(8, 12, img)
             print(length)
+            detector.findDistance(12, 16, img)
             # 13. right click if distance was short
             if length < 25:
                 autopy.mouse.click(button=autopy.mouse.Button.RIGHT)
@@ -162,6 +249,8 @@ def Mouse(img):
         if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1 and fingers[4] == 1:
             # Middle mouse button click
             length, bbox = detector.findDistance(8, 12, img)
+            detector.findDistance(12, 16, img)
+            detector.findDistance(16, 20, img)
             if length < 25:
                 pyautogui.click(button='middle')
                 time.sleep(0.7)
