@@ -11,11 +11,7 @@ import threading
 import pyautogui
 
 OUTPUT_PATH = Path(__file__).parent
-<<<<<<< HEAD:Main.py
 ASSETS_PATH = OUTPUT_PATH / Path(r"assets")  # gui assets path
-=======
-ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame0")  # gui assets path
->>>>>>> e0a77b6b3c6541545bea1dff48d40b660e2585c9:gui.py
 
 
 def relative_to_assets(path: str) -> Path:
@@ -101,7 +97,6 @@ button_2.place(
 window.resizable(False, False)
 
 
-<<<<<<< HEAD:Main.py
 class HandDetector :
     def __init__(self ,mode=False , maxHand=2 , detectCon=0.5 ,trackCon=0.5):
         self.mode = mode
@@ -187,15 +182,6 @@ class HandDetector :
         return length,[x1, y1, x2, y2, cx, cy]
     
 ###########################
-=======
-def check_s_pressed(event):
-    if event.char == 's':
-        start_main_loop()
-
-
-window.bind("<KeyPress>", check_s_pressed)  # start if 's' is pressed in the keyboard
-####################################
->>>>>>> e0a77b6b3c6541545bea1dff48d40b660e2585c9:gui.py
 
 
 wCam, hCam = 640, 480
